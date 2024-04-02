@@ -30,32 +30,30 @@ func fn() {
 	}
 	log.Printf("hotkey %v is registered\n", hk)
 
+	defer func() {
+		if err := hk.Unregister(); err != nil {
+			log.Printf("hotkey %v failed to unregister: %v\n", hk, err)
+			return
+		}
+		log.Printf("hotkey %v is unregistered\nexiting", hk)
+	}()
+
 	sigChan := make(chan os.Signal, 1)
 	signal.Notify(sigChan, syscall.SIGINT, syscall.SIGTERM)
 
-	func() {
-		for {
-			select {
-			case sig := <-sigChan:
-				log.Printf("exiting main loop due to signal: %v\n", sig)
+	for {
+		select {
+		case sig := <-sigChan:
+			log.Printf("exiting (signal: %v)\n", sig)
+			return
+		case <-hk.Keyup():
+			cmd := exec.Command(commandName, commandArgs...) // #nosec G204
+			cmd.Stdout = os.Stdout
+			cmd.Stderr = os.Stderr
+			if err := cmd.Run(); err != nil {
+				log.Printf("error executing command: %v\n", err)
 				return
-			case <-hk.Keyup():
-				cmd := exec.Command(commandName, commandArgs...) // #nosec G204
-				cmd.Stdout = os.Stdout
-				cmd.Stderr = os.Stderr
-				if err := cmd.Run(); err != nil {
-					log.Printf("error executing command: %v\n", err)
-					return
-				}
 			}
 		}
-	}()
-
-	if err := hk.Unregister(); err != nil {
-		log.Printf("hotkey %v failed to unregister: %v\n", hk, err)
-		return
 	}
-	log.Printf("hotkey %v is unregistered\n", hk)
-
-	log.Printf("exiting")
 }
