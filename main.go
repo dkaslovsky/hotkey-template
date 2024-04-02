@@ -30,36 +30,26 @@ func fn() {
 	}
 	log.Printf("hotkey %v is registered\n", hk)
 
-	doneChan := make(chan struct{}, 1)
 	sigChan := make(chan os.Signal, 1)
 	signal.Notify(sigChan, syscall.SIGINT, syscall.SIGTERM)
 
-	go func() {
-		for s := range sigChan {
-			log.Printf("signal handler got signal: %v\n", s)
-			doneChan <- struct{}{}
-		}
-		log.Printf("signal handler done")
-	}()
-
-hotkeyListener:
-	for {
-		select {
-		case <-doneChan:
-			log.Print("exiting main loop due to interrupt signal\n")
-			break hotkeyListener
-		case <-hk.Keyup():
-			cmd := exec.Command(commandName, commandArgs...) // #nosec G204
-			cmd.Stdout = os.Stdout
-			cmd.Stderr = os.Stderr
-			if err := cmd.Run(); err != nil {
-				log.Printf("error executing command: %v\n", err)
-				break hotkeyListener
+	func() {
+		for {
+			select {
+			case sig := <-sigChan:
+				log.Printf("exiting main loop due to signal: %v\n", sig)
+				return
+			case <-hk.Keyup():
+				cmd := exec.Command(commandName, commandArgs...) // #nosec G204
+				cmd.Stdout = os.Stdout
+				cmd.Stderr = os.Stderr
+				if err := cmd.Run(); err != nil {
+					log.Printf("error executing command: %v\n", err)
+					return
+				}
 			}
 		}
-	}
-
-	close(sigChan)
+	}()
 
 	if err := hk.Unregister(); err != nil {
 		log.Printf("hotkey %v failed to unregister: %v\n", hk, err)
