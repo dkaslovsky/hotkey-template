@@ -35,7 +35,8 @@ func fn() {
 			log.Printf("hotkey %v failed to unregister: %v\n", hk, err)
 			return
 		}
-		log.Printf("hotkey %v is unregistered\nexiting", hk)
+		log.Printf("hotkey %v is unregistered\n", hk)
+		log.Printf("exiting")
 	}()
 
 	sigChan := make(chan os.Signal, 1)
