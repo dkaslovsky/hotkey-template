@@ -31,11 +31,12 @@ func fn() {
 	log.Printf("hotkey %v is registered\n", hk)
 
 	defer func() {
-		if err := hk.Unregister(); err != nil {
+		err := hk.Unregister()
+		if err != nil {
 			log.Printf("hotkey %v failed to unregister: %v\n", hk, err)
-			return
+		} else {
+			log.Printf("hotkey %v is unregistered\n", hk)
 		}
-		log.Printf("hotkey %v is unregistered\n", hk)
 		log.Printf("exiting")
 	}()
 
