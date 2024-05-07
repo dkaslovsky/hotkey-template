@@ -19,5 +19,6 @@ Template for triggering an arbitrary command with a global hotkey
 ```
 
 ```
-launchctl load /Library/LaunchAgents/com.dkas.bravenewwindowhotkey.plist
+#launchctl load /Library/LaunchAgents/com.dkas.bravenewwindowhotkey.plist
+launchctl start com.das.bravenewwindowhotkey
 ```
