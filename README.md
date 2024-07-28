@@ -90,5 +90,3 @@ launchctl start com.dkas.hotkeys
     ```
     $ go install github.com/dkaslovsky/hotkeys@latest
     ```
-
-* Build from source by cloning this repository and running `go build` in the `hotkeys` root directory.
