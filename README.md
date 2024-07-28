@@ -1,5 +1,5 @@
 # hotkeys
-Trigger arbitrary commands with global hotkeys on macOS (ARM64)
+Trigger arbitrary commands with global hotkeys on macOS
 
 ### Installation
 
@@ -76,8 +76,13 @@ launchctl start com.dkas.hotkeys
 
 ### Installation Options
 * Download a pre-built binary (see [releases](https://github.com/dkaslovsky/hotkeys/releases/latest)):
+    ARM:
     ```
     $ curl -o hotkeys -L https://github.com/dkaslovsky/hotkeys/releases/latest/download/hotkeys_darwin_arm64
+    ```
+    AMD:
+    ```
+    $ curl -o hotkeys -L https://github.com/dkaslovsky/hotkeys/releases/latest/download/hotkeys_darwin_amd64
     ```
 
 * Install using Go:
@@ -86,4 +91,3 @@ launchctl start com.dkas.hotkeys
     ```
 
 * Build from source by cloning this repository and running `go build` in the `hotkeys` root directory.
-* Note: AMD64 architecture is not supported due to an incompatibility with one or more dependencies
