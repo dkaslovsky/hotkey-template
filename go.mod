@@ -1,6 +1,6 @@
-module github.com/dkaslovsky/hotkey-template
+module github.com/dkaslovsky/hotkeys
 
-go 1.22.0
+go 1.22.5
 
 require golang.design/x/hotkey v0.4.1
 
