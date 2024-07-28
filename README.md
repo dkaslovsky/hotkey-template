@@ -1,5 +1,5 @@
 # hotkey-template
-Template for triggering an arbitrary command with a global hotkey
+Template for triggering an arbitrary commands with a global hotkey
 
 
 ### plist
@@ -9,16 +9,22 @@ Template for triggering an arbitrary command with a global hotkey
 <plist version="1.0">
 <dict>
     <key>Label</key>
-    <string>com.dkas.bravenewwindowhotkey</string>
+    <string>com.dkas.hotkeys</string>
+
+    <key>UserName</key>
+    <string>dkas</string>
+
     <key>ProgramArguments</key>
     <array>
-        <string>/Users/dkas/bin/bravenewwindowhotkey</string>
+        <string>/Users/dkas/bin/hotkeys</string>
+        <string>-file</string>
+        <string>/Users/dkas/.config/hotkeys/hotkeys</string>
     </array>
 </dict>
 </plist>
 ```
 
 ```
-#launchctl load /Library/LaunchAgents/com.dkas.bravenewwindowhotkey.plist
-launchctl start com.das.bravenewwindowhotkey
+launchctl load /Library/LaunchAgents/com.dkas.hotkeys.plist
+launchctl start com.dkas.hotkeys
 ```
