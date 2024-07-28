@@ -16,6 +16,49 @@ import (
 	"golang.design/x/hotkey/mainthread"
 )
 
+// Application appName
+const appName = "hotkeys"
+
+// Version is set with ldflags
+var version string
+
+func main() {
+	var (
+		configFile   string
+		printVersion bool
+	)
+	flag.StringVar(&configFile, "file", "", "path to key configuration file")
+	flag.BoolVar(&printVersion, "version", false, "print version information")
+	flag.Parse()
+
+	if printVersion {
+		displayVersion()
+		return
+	}
+
+	if configFile == "" {
+		log.Fatal("no configuration file specified")
+	}
+	f, err := os.Open(configFile)
+	if err != nil {
+		log.Fatalf("failed to open key configuration file %s: %v", configFile, err)
+	}
+	hotkeyTriggers, err := parseKeyConfig(f)
+	if err != nil {
+		log.Fatalf("failed to parse key configuration: %v", err)
+	}
+
+	mainthread.Init(func() {
+		wg := &sync.WaitGroup{}
+		for _, hkCmd := range hotkeyTriggers {
+			wg.Add(1)
+			go listener(hkCmd, wg)
+		}
+		wg.Wait()
+		log.Print("done")
+	})
+}
+
 type hotkeyTrigger struct {
 	*hotkey.Hotkey
 	name        string
@@ -34,6 +77,45 @@ type keyConfig struct {
 	CommandArgs  []string `json:"command_args"`
 	Key          string   `json:"key"`
 	KeyModifiers []string `json:"key_modifiers"`
+}
+
+func listener(trigger *hotkeyTrigger, wg *sync.WaitGroup) {
+	defer wg.Done()
+
+	if err := trigger.Register(); err != nil {
+		log.Printf("hotkey failed to register: %v", err)
+		return
+	}
+	log.Printf("hotkey %s is registered\n", trigger)
+
+	defer func() {
+		err := trigger.Unregister()
+		if err != nil {
+			log.Printf("hotkey %s failed to unregister: %v\n", trigger, err)
+		} else {
+			log.Printf("hotkey %s is unregistered\n", trigger)
+		}
+		log.Printf("listener for hotkey %s exiting", trigger)
+	}()
+
+	sigChan := make(chan os.Signal, 1)
+	signal.Notify(sigChan, syscall.SIGINT, syscall.SIGTERM)
+
+	for {
+		select {
+		case sig := <-sigChan:
+			log.Printf("exiting (signal: %v)\n", sig)
+			return
+		case <-trigger.Keyup():
+			cmd := exec.Command(trigger.commandName, trigger.commandArgs...) // #nosec G204
+			cmd.Stdout = os.Stdout
+			cmd.Stderr = os.Stderr
+			if err := cmd.Run(); err != nil {
+				log.Printf("error executing command for hotkey %s: %v\n", trigger, err)
+				return
+			}
+		}
+	}
 }
 
 func parseKeyConfig(r io.Reader) ([]*hotkeyTrigger, error) {
@@ -75,69 +157,11 @@ func parseKeyConfig(r io.Reader) ([]*hotkeyTrigger, error) {
 	return hotkeyTriggers, nil
 }
 
-func main() {
-	var configFile string
-	flag.StringVar(&configFile, "file", "", "path to key configuration file")
-	flag.Parse()
-
-	if configFile == "" {
-		log.Fatal("no configuration file specified")
-	}
-	f, err := os.Open(configFile)
-	if err != nil {
-		log.Fatalf("failed to open key configuration file %s: %v", configFile, err)
-	}
-	hotkeyTriggers, err := parseKeyConfig(f)
-	if err != nil {
-		log.Fatalf("failed to parse key configuration: %v", err)
-	}
-
-	mainthread.Init(func() {
-		wg := &sync.WaitGroup{}
-		for _, hkCmd := range hotkeyTriggers {
-			wg.Add(1)
-			go listener(hkCmd, wg)
-		}
-		wg.Wait()
-		log.Print("done")
-	})
-}
-
-func listener(trigger *hotkeyTrigger, wg *sync.WaitGroup) {
-	defer wg.Done()
-
-	if err := trigger.Register(); err != nil {
-		log.Printf("hotkey failed to register: %v", err)
+func displayVersion() {
+	vStr := "%s: version %s\n"
+	if version == "" {
+		fmt.Printf(vStr, appName, "(development)")
 		return
 	}
-	log.Printf("hotkey %s is registered\n", trigger)
-
-	defer func() {
-		err := trigger.Unregister()
-		if err != nil {
-			log.Printf("hotkey %s failed to unregister: %v\n", trigger, err)
-		} else {
-			log.Printf("hotkey %s is unregistered\n", trigger)
-		}
-		log.Printf("listener for hotkey %s exiting", trigger)
-	}()
-
-	sigChan := make(chan os.Signal, 1)
-	signal.Notify(sigChan, syscall.SIGINT, syscall.SIGTERM)
-
-	for {
-		select {
-		case sig := <-sigChan:
-			log.Printf("exiting (signal: %v)\n", sig)
-			return
-		case <-trigger.Keyup():
-			cmd := exec.Command(trigger.commandName, trigger.commandArgs...) // #nosec G204
-			cmd.Stdout = os.Stdout
-			cmd.Stderr = os.Stderr
-			if err := cmd.Run(); err != nil {
-				log.Printf("error executing command for hotkey %s: %v\n", trigger, err)
-				return
-			}
-		}
-	}
+	fmt.Printf(vStr, appName, version)
 }
