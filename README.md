@@ -74,10 +74,21 @@ sleep 2
 launchctl start com.dkas.hotkeys
 ```
 
-### Installation
-Build from source by cloning this repository and running `go build` in the `hotkeys` root directory.
-```
-git clone git@github.com:dkaslovsky/hotkeys.git
-cd hotkeys
-go build
-```
+### Installation Options
+* Download a pre-built binary (see [releases](https://github.com/dkaslovsky/hotkeys/releases/latest)):
+  
+    ARM:
+    ```
+    $ curl -o hotkeys -L https://github.com/dkaslovsky/hotkeys/releases/latest/download/hotkeys_darwin_arm64
+    ```
+    AMD:
+    ```
+    $ curl -o hotkeys -L https://github.com/dkaslovsky/hotkeys/releases/latest/download/hotkeys_darwin_amd64
+    ```
+
+* Install using Go:
+    ```
+    $ go install github.com/dkaslovsky/hotkeys@latest
+    ```
+
+* Build from source by cloning this repository and running `go build` in the `hotkeys` root directory.
