@@ -1,8 +1,6 @@
 # hotkeys
 Trigger arbitrary commands with global hotkeys on macOS
 
-### Installation
-
 
 ### Configuration
 Bind commands to hotkeys in a configuration file
