@@ -1,6 +1,29 @@
 # hotkeys
 Trigger arbitrary commands with global hotkeys on macOS
 
+<br/>
+
+### Quick Start
+1. Download the `hotkeys` binary:
+   
+    ARM:
+    ```
+    curl -o hotkeys -L https://github.com/dkaslovsky/hotkeys/releases/latest/download/hotkeys_darwin_arm64
+    ```
+    AMD:
+    ```
+    curl -o hotkeys -L https://github.com/dkaslovsky/hotkeys/releases/latest/download/hotkeys_darwin_amd64
+    ```
+2. Ensure the binary is executable:
+   ```
+   chmod +x hotkeys
+   ```
+3. Make sure it is in a directory that is included in `$PATH`
+4. Create a configuration file for your hotkeys and associated commands (see example provided below)
+5. Create a `.plist` file (see the example provided below) that includes the proper path to the binary and the configuration file. Place this file in `/Library/LaunchAgents/` (using `sudo` if necessary)
+7. Use `launchctl` to load the .plist file and start the service (see the example commands below)
+
+<br/>
 
 ### Configuration
 Bind commands to hotkeys in a configuration file
@@ -35,6 +58,7 @@ Bind commands to hotkeys in a configuration file
 ]
 ```
 
+<br/>
 
 ### plist
 Add a plist specifying the location of the binary and configuration files to `/Library/LaunchAgents/`
@@ -59,6 +83,8 @@ Add a plist specifying the location of the binary and configuration files to `/L
 </plist>
 ```
 
+<br/>
+
 ### launchctl
 Load the plist and start the service
 ```
@@ -71,20 +97,3 @@ launchctl stop com.dkas.hotkeys
 sleep 2
 launchctl start com.dkas.hotkeys
 ```
-
-### Installation Options
-* Download a pre-built binary (see [releases](https://github.com/dkaslovsky/hotkeys/releases/latest)):
-  
-    ARM:
-    ```
-    $ curl -o hotkeys -L https://github.com/dkaslovsky/hotkeys/releases/latest/download/hotkeys_darwin_arm64
-    ```
-    AMD:
-    ```
-    $ curl -o hotkeys -L https://github.com/dkaslovsky/hotkeys/releases/latest/download/hotkeys_darwin_amd64
-    ```
-
-* Install using Go:
-    ```
-    $ go install github.com/dkaslovsky/hotkeys@latest
-    ```
