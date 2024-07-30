@@ -25,41 +25,6 @@ Trigger arbitrary commands with global hotkeys on macOS
 
 <br/>
 
-### Configuration
-Bind commands to hotkeys in a configuration file
-```
-[
-  {
-    "name":"Brave Browser - open new window for default profile (Main)",
-    "command_name":"open",
-    "command_args":[
-      "-na", "Brave Browser", "--args", "--new-window", "--profile-directory=Default"
-    ],
-    "key":"KeyN",
-    "key_modifiers":[
-      "ModCtrl",
-      "ModOption",
-      "ModCmd"
-    ]
-  },
-  {
-    "name":"Brave Browser - open new window for profile 5",
-    "command_name":"open",
-    "command_args":[
-      "-na", "Brave Browser", "--args", "--new-window", "--profile-directory=Profile 5"
-    ],
-    "key":"KeyM",
-    "key_modifiers":[
-      "ModCtrl",
-      "ModOption",
-      "ModCmd"
-    ]
-  }
-]
-```
-
-<br/>
-
 ### plist
 Add a plist specifying the location of the binary and configuration files to `/Library/LaunchAgents/`
 ```
@@ -97,3 +62,40 @@ launchctl stop com.dkas.hotkeys
 sleep 2
 launchctl start com.dkas.hotkeys
 ```
+
+<br/>
+
+### Configuration
+Bind commands to hotkeys in a configuration file
+```
+[
+  {
+    "name":"Brave Browser - open new window for default profile (Main)",
+    "command_name":"open",
+    "command_args":[
+      "-na", "Brave Browser", "--args", "--new-window", "--profile-directory=Default"
+    ],
+    "key":"KeyN",
+    "key_modifiers":[
+      "ModCtrl",
+      "ModOption",
+      "ModCmd"
+    ]
+  },
+  {
+    "name":"Brave Browser - open new window for profile 5",
+    "command_name":"open",
+    "command_args":[
+      "-na", "Brave Browser", "--args", "--new-window", "--profile-directory=Profile 5"
+    ],
+    "key":"KeyM",
+    "key_modifiers":[
+      "ModCtrl",
+      "ModOption",
+      "ModCmd"
+    ]
+  }
+]
+```
+
+Keys and modifiers are identified in the configuration file by using the `Key` prefix for a letter/number (e.g., use `KeyN` for the `N` key) and the `Mod` prefix for a modifier (e.g., use `ModCtrl` for the control modifier key).
