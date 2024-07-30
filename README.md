@@ -98,4 +98,5 @@ Bind commands to hotkeys in a configuration file
 ]
 ```
 
-Keys and modifiers are identified in the configuration file by using the `Key` prefix for a letter/number (e.g., use `KeyN` for the `N` key) and the `Mod` prefix for a modifier (e.g., use `ModCtrl` for the control modifier key).
+Keys and modifiers are identified in the configuration file by using the `Key` prefix for a regular key (e.g., use `KeyN` for the `N` key) and the `Mod` prefix for a modifier (e.g., use `ModCtrl` for the control modifier key).
+See also the [full list](https://github.com/dkaslovsky/hotkeys/blob/main/keys.go) of available keys and modifiers in the code base.
