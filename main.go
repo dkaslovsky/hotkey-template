@@ -1,10 +1,7 @@
 package main
 
 import (
-	"encoding/json"
-	"flag"
 	"fmt"
-	"io"
 	"log"
 	"os"
 	"os/exec"
@@ -23,39 +20,36 @@ const appName = "hotkeys"
 var version string
 
 func main() {
-	var (
-		configFile   string
-		printVersion bool
-	)
-	flag.StringVar(&configFile, "file", "", "path to key configuration file")
-	flag.BoolVar(&printVersion, "version", false, "print version information")
-	flag.Parse()
+	flags := appFlags{}
+	attachFlags(&flags)
 
-	if printVersion {
+	if flags.versionAndExit {
 		displayVersion()
 		return
 	}
 
-	if configFile == "" {
-		log.Fatal("no configuration file specified")
+	// Construct hotkey triggers from configuration file
+	if flags.configFile == "" {
+		log.Fatal("must provide path to key configuration file")
 	}
-	f, err := os.Open(configFile)
+	configReader, err := os.Open(flags.configFile)
 	if err != nil {
-		log.Fatalf("failed to open key configuration file %s: %v", configFile, err)
+		log.Fatalf("failed to open key configuration file %s: %v", flags.configFile, err)
 	}
-	hotkeyTriggers, err := parseKeyConfig(f)
+	hotkeyTriggers, err := parseKeyConfig(configReader)
 	if err != nil {
 		log.Fatalf("failed to parse key configuration: %v", err)
 	}
 
+	// Run a listener for each hotkey trigger
 	mainthread.Init(func() {
 		wg := &sync.WaitGroup{}
-		for _, hkCmd := range hotkeyTriggers {
+		for _, h := range hotkeyTriggers {
 			wg.Add(1)
-			go listener(hkCmd, wg)
+			go listener(wg, h)
 		}
 		wg.Wait()
-		log.Print("done")
+		log.Printf("%s exiting", appName)
 	})
 }
 
@@ -70,20 +64,11 @@ func (h *hotkeyTrigger) String() string {
 	return fmt.Sprintf("'%s' (%v)", h.name, h.Hotkey)
 }
 
-// configuration for each hotkey trigger
-type keyConfig struct {
-	Name         string   `json:"name"`
-	CommandName  string   `json:"command_name"`
-	CommandArgs  []string `json:"command_args"`
-	Key          string   `json:"key"`
-	KeyModifiers []string `json:"key_modifiers"`
-}
-
-func listener(trigger *hotkeyTrigger, wg *sync.WaitGroup) {
+func listener(wg *sync.WaitGroup, trigger *hotkeyTrigger) {
 	defer wg.Done()
 
 	if err := trigger.Register(); err != nil {
-		log.Printf("hotkey failed to register: %v", err)
+		log.Printf("hotkey %s failed to register: %v", trigger, err)
 		return
 	}
 	log.Printf("hotkey %s is registered\n", trigger)
@@ -104,7 +89,7 @@ func listener(trigger *hotkeyTrigger, wg *sync.WaitGroup) {
 	for {
 		select {
 		case sig := <-sigChan:
-			log.Printf("exiting (signal: %v)\n", sig)
+			log.Printf("listener for hotkey %s exiting (received signal: %v)\n", trigger, sig)
 			return
 		case <-trigger.Keyup():
 			cmd := exec.Command(trigger.commandName, trigger.commandArgs...) // #nosec G204
@@ -116,45 +101,6 @@ func listener(trigger *hotkeyTrigger, wg *sync.WaitGroup) {
 			}
 		}
 	}
-}
-
-func parseKeyConfig(r io.Reader) ([]*hotkeyTrigger, error) {
-	// Read and unmarshal configuration file
-	raw, err := io.ReadAll(r)
-	if err != nil {
-		return nil, err
-	}
-	keyConfigs := []*keyConfig{}
-	err = json.Unmarshal(raw, &keyConfigs)
-	if err != nil {
-		return nil, err
-	}
-
-	hotkeyTriggers := []*hotkeyTrigger{}
-	for _, config := range keyConfigs {
-		// Map string representations of keys to key constants
-		key, ok := keyMap[config.Key]
-		if !ok {
-			return nil, fmt.Errorf("unknown key: %s", config.Key)
-		}
-		modifiers := []hotkey.Modifier{}
-		for _, m := range config.KeyModifiers {
-			modifier, ok := modifierMap[m]
-			if !ok {
-				return nil, fmt.Errorf("unknown key modifier: %s", m)
-			}
-			modifiers = append(modifiers, modifier)
-		}
-
-		hotkeyTriggers = append(hotkeyTriggers, &hotkeyTrigger{
-			Hotkey:      hotkey.New(modifiers, key),
-			name:        config.Name,
-			commandName: config.CommandName,
-			commandArgs: config.CommandArgs,
-		})
-	}
-
-	return hotkeyTriggers, nil
 }
 
 func displayVersion() {
